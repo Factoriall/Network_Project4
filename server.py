@@ -29,13 +29,14 @@ def recvMsg(serverSocket):
                 print(clientList)
                 sendList(clientList, serverSocket, clientAddr)
             elif cmd == 'unregister':
-                print('unregister')
                 for client in clientList:
                     if client[0] == id:
+                        print(id + 'is unregistered' + '\t' + client[1])
                         clientList.remove(client)
                         break
                 for client in clientList:
                     sendList(clientList, serverSocket, client[1])
+                print
             elif cmd == 'renew':
                 print('renew')
                 for client in clientList:
@@ -54,7 +55,7 @@ def timeoutCheck():
                 if time.time() - client[2] <= 30:
                     result.append(client)
                 else:
-                    print('timeout!:', client)
+                    print(client[0] + 'is offline' + '\t' + client[1])
                     update = True
             clientList = result
             if update:

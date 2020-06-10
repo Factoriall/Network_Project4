@@ -7,6 +7,7 @@ from socket import *
 clientList = []
 lock = threading.Lock()
 ID = ''
+serverIP = ''
 _FINISH = False
 
 def updateList(listFromServer):
@@ -26,6 +27,7 @@ def updateList(listFromServer):
 
 def register(clientSocket, clientPort):
     global ID
+    global serverIP
 
     ID = input("Enter the Client ID: ")
     #serverIP = input("Enter the server IP address: ")
