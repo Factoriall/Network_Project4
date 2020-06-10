@@ -7,12 +7,14 @@ from socket import *
 clientList = []
 lock = threading.Lock()
 ID = ''
+_FINISH = False
 
 def updateList(listFromServer):
     global clientList
 
     with lock:
         clientList = []
+        print("Client list is updated!")
         for client in listFromServer:
             print(client)
             if client == '':
@@ -37,47 +39,58 @@ def register(clientSocket, clientPort):
     updateList(listFromServer)
     
     
-def writeCommand(clientSocket, clientPort):
+def writeCommand(clientSocket):
+    global _FINISH
+
     while True:
-        cmd = input()
+        cmdLine = input()
+        cmd = cmdLine.split(' ')[0]
         if cmd == '@show_list':
-            for client in clientList:
-                print(client[0] + '\t' + client[1])
+            with lock:
+                for client in clientList:
+                    print(client[0] + '\t' + client[1])
         elif cmd == '@chat':
-            receiverInput = input()
-            receiverId = ''
+            receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
-            for client in clientList:
-                if receiverInput == client[0]:
-                    clientAddr = client[1]
-                    break
-            chat = input()
-            message = "chat:" + chat
+            with lock:
+                for client in clientList:
+                    if receiverInput == client[0]:
+                        receiverAddr = client[1]
+                        break
+            chat = ' '.join(cmdLine.split(' ')[2:])
+            message = "chat:" + ID + '____' + chat
             clientSocket.sendto(message.encode(), receiverAddr)
-            
         elif cmd == '@exit':
             message = "unregister:" + ID
-            clientSocket.sendto(message.encode(), (serverIP, 10080)) 
+            clientSocket.sendto(message.encode(), (serverIP, 10080))
+            _FINISH = True
             break
         else:
-            print("Wrong Command, write again")
+            print("Wrong command, write again")
 
 
-def recvMsg(clientSocket, clientPort):
+def recvMsg(clientSocket):
     while True:
         msg, serverAddr = clientSocket.recvfrom(2048)
         cmd = msg.decode().split(':')[0]
         info = msg.decode().split(':')[1]
         if cmd == 'chat':
-            print('chat')
+            print('From ' + info.split('____')[0] + '[' + info.split('____')[1] + ']')
         elif cmd == 'update':
             print('update')
             listFromServer = info.split('\n')
             updateList(listFromServer)
-            
-         
-        
+        if _FINISH:
+            break
 
+
+def sendStayAlive(clientSocket):
+    while True:
+        if _FINISH:
+            break
+        message = "renew:" + ID
+        clientSocket.sendto(message.encode(), (serverIP, 10080))
+        time.sleep(10)
 
 
 if __name__ == '__main__':
@@ -87,10 +100,16 @@ if __name__ == '__main__':
 
     register(clientSocket, clientPort)
 
-    #t1 = threading.Thread(target = writeCommand, args=(clientSocket, clientPort))
-    #t1.start()
-    t2 = threading.Thread(target = recvMsg, args=(clientSocket, clientPort))
+    t1 = threading.Thread(target=writeCommand, args=(clientSocket, ))
+    t1.start()
+    t2 = threading.Thread(target=recvMsg, args=(clientSocket, ))
     t2.start()
-    
-    #writeCommand(clientSocket, clientPort)
+    t3 = threading.Thread(target=sendStayAlive, args=(clientSocket, ))
+    t3.start()
 
+    if t1.join():
+        _FINISH = True
+    t2.join()
+    t3.join()
+
+    clientSocket.close()
