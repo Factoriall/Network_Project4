@@ -21,8 +21,8 @@ def updateList(listFromServer):
                 break
             clientId = client.split('_')[0]
             clientAddr = client.split('_')[1] 
-            clientList.append([clientId, (clientAddr.split('/')[0], clientAddr.split('/')[1])])
-            print(clientId + '\t' + clientAddr)
+            clientList.append([clientId, (clientAddr.split('/')[0], int(clientAddr.split('/')[1]))])
+            print(clientId + '\t', clientAddr)
 
 def register(clientSocket, private_ip):
     global ID
@@ -58,7 +58,6 @@ def writeCommand(clientSocket, private_ip):
                     if receiverInput == client[0]:
                         receiverAddr = client[1]
                         break
-
             chat = ' '.join(cmdLine.split(' ')[2:])
             message = "chat:" + ID + '____' + chat
             clientSocket.sendto(message.encode(), receiverAddr)
