@@ -17,13 +17,12 @@ def updateList(listFromServer):
         clientList = []
         print("Client list is updated!")
         for client in listFromServer:
-            print(client)
             if client == '':
                 break
             clientId = client.split('_')[0]
             clientAddr = client.split('_')[1] 
-            clientList.append([clientId, (clientAddr.split('/')[0], clientAddr.split('/')[1])])
-            print(clientId + '\t' + clientAddr)
+            clientList.append([clientId, (clientAddr.split('/')[0], int(clientAddr.split('/')[1]))])
+            print(clientId + '\t', clientAddr)
 
 def register(clientSocket, clientPort):
     global ID
@@ -50,7 +49,7 @@ def writeCommand(clientSocket):
         if cmd == '@show_list':
             with lock:
                 for client in clientList:
-                    print(client[0] + '\t' + client[1])
+                    print(client[0] + '\t', client[1])
         elif cmd == '@chat':
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
@@ -59,6 +58,7 @@ def writeCommand(clientSocket):
                     if receiverInput == client[0]:
                         receiverAddr = client[1]
                         break
+            print(receiverAddr)
             chat = ' '.join(cmdLine.split(' ')[2:])
             message = "chat:" + ID + '____' + chat
             clientSocket.sendto(message.encode(), receiverAddr)
