@@ -65,6 +65,7 @@ def writeCommand(clientSocket, private_ip):
             message = "unregister:" + ID + '_' + private_ip
             clientSocket.sendto(message.encode(), (serverIP, 10080))
             _FINISH = True
+            print('finish thread1')
             break
         else:
             print("Wrong command, write again")
@@ -73,6 +74,8 @@ def writeCommand(clientSocket, private_ip):
 def recvMsg(clientSocket):
     while True:
         msg, serverAddr = clientSocket.recvfrom(2048)
+        if msg.decode() == 'exit':
+            break
         cmd = msg.decode().split(':')[0]
         info = msg.decode().split(':')[1]
         if cmd == 'chat':
@@ -80,8 +83,6 @@ def recvMsg(clientSocket):
         elif cmd == 'update':
             listFromServer = info.split('\n')
             updateList(listFromServer)
-        if _FINISH:
-            break
 
 
 def sendStayAlive(clientSocket, private_ip):
@@ -95,9 +96,10 @@ def sendStayAlive(clientSocket, private_ip):
 
 
 if __name__ == '__main__':
-    s = socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s = socket(AF_INET, SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     private_ip = s.getsockname()[0]
+    print(private_ip)
     s.close()
 
     clientPort = 10081
@@ -113,9 +115,9 @@ if __name__ == '__main__':
     t3 = threading.Thread(target=sendStayAlive, args=(clientSocket, private_ip))
     t3.start()
 
-    if t1.join():
-        _FINISH = True
+    t1.join()
+    _FINISH = True
+
     t2.join()
     t3.join()
 
-    clientSocket.close()
