@@ -24,14 +24,15 @@ def recvMsg(serverSocket):
 
         id = id_addr.split('_')[0]
         addr = id_addr.split('_')[1]
+        privateAddr = (addr, 10081)
         with lock:
             if cmd == 'register':
-                privateAddr = (addr, clientAddr[1])
                 clientList.append([id, privateAddr, time.time()])
                 for client in clientList:
                     print(client[1])
                     sendList(clientList, serverSocket, client[1])
             elif cmd == 'unregister':
+                serverSocket.sendto('exit'.encode(), privateAddr)
                 for client in clientList:
                     if client[0] == id:
                         print(id + ' is unregistered' + '\t', client[1])

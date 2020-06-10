@@ -76,7 +76,7 @@ def recvMsg(clientSocket):
         cmd = msg.decode().split(':')[0]
         info = msg.decode().split(':')[1]
         if cmd == 'chat':
-            print('From ' + info.split('____')[0] + '[' + info.split('____')[1] + ']')
+            print('From ' + info.split('____')[0] + ' [' + info.split('____')[1] + ']')
         elif cmd == 'update':
             listFromServer = info.split('\n')
             updateList(listFromServer)
@@ -85,6 +85,7 @@ def recvMsg(clientSocket):
 
 
 def sendStayAlive(clientSocket, private_ip):
+
     while True:
         if _FINISH:
             break
@@ -107,7 +108,7 @@ if __name__ == '__main__':
 
     t1 = threading.Thread(target=writeCommand, args=(clientSocket, private_ip))
     t1.start()
-    t2 = threading.Thread(target=recvMsg, args=(clientSocket, private_ip))
+    t2 = threading.Thread(target=recvMsg, args=(clientSocket, ))
     t2.start()
     t3 = threading.Thread(target=sendStayAlive, args=(clientSocket, private_ip))
     t3.start()
