@@ -16,13 +16,11 @@ def updateList(listFromServer):
 
     with lock:
         clientList = []
-        print("ID" + "\tPublic IP" + "\tPrivate IP")
         for client in listFromServer:
             if client == '':
                 break
             clientId = client.split('_')[0]
             publicAddr = client.split('_')[1]
-            privateAddr = ''
             if len(client.split('_')) == 3:
                 privateAddr = client.split('_')[2]
                 clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), (privateAddr.split('/')[0], int(privateAddr.split('/')[1]))])
@@ -54,7 +52,7 @@ def writeCommand(clientSocket):
         cmd = cmdLine.split(' ')[0]
         if cmd == '@show_list':
             with lock:
-                print("ID\tPublic IP\tPrivate IP")
+                print("ID\tPublic IP\t\t\tPrivate IP")
                 for client in clientList:
                     if client[2] != 'x':
                         print(client[0] + '\t', client[1], '\t', client[2])

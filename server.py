@@ -32,7 +32,7 @@ def recvMsg(serverSocket):
                 id = info.split('_')[0]
                 addr = info.split('_')[1]
                 privateAddr = (addr, 10081)
-                print("public: ", publicAddr, "\tprivate: ", privateAddr)
+                print("ID:", id, "\tpublic:", publicAddr, "\tprivate:", privateAddr)
                 clientList.append([id, publicAddr, privateAddr, time.time()])
                 sendList(clientList, serverSocket)
             elif cmd == 'unregister':
