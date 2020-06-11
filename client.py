@@ -10,6 +10,7 @@ ID = ''
 serverIP = ''
 _FINISH = False
 
+
 def updateList(listFromServer):
     global clientList
 
@@ -58,11 +59,12 @@ def writeCommand(clientSocket):
         cmd = cmdLine.split(' ')[0]
         if cmd == '@show_list':
             with lock:
+                print("ID\tPublic IP\tPrivate IP")
                 for client in clientList:
                     if client[2] != 'x':
                         print(client[0] + '\t', client[1], '\t', client[2])
                     else:
-                        print(client[0] + '\t', client[1])
+                        print(client[0] + '\t', client[1]. '\txxx')
         elif cmd == '@chat':
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
@@ -81,7 +83,6 @@ def writeCommand(clientSocket):
             message = "unregister:" + ID
             clientSocket.sendto(message.encode(), (serverIP, 10080))
             _FINISH = True
-            print('finish thread1')
             break
         else:
             print("Wrong command, write again")
@@ -101,7 +102,7 @@ def recvMsg(clientSocket):
             updateList(listFromServer)
 
 
-def sendStayAlive(clientSocket, private_ip):
+def sendStayAlive(clientSocket):
     while True:
         if _FINISH:
             break
@@ -114,7 +115,6 @@ if __name__ == '__main__':
     s = socket(AF_INET, SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     private_ip = s.getsockname()[0]
-    print(private_ip)
     s.close()
 
     clientPort = 10081
@@ -127,12 +127,13 @@ if __name__ == '__main__':
     t1.start()
     t2 = threading.Thread(target=recvMsg, args=(clientSocket, ))
     t2.start()
-    t3 = threading.Thread(target=sendStayAlive, args=(clientSocket, private_ip))
+    t3 = threading.Thread(target=sendStayAlive, args=(clientSocket, ))
     t3.start()
 
     t1.join()
     _FINISH = True
-
     t2.join()
     t3.join()
+
+    clientSocket.close()
 

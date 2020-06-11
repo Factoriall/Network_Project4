@@ -6,8 +6,8 @@ from socket import *
 clientList = []
 lock = threading.Lock()
 
+
 def sendList(clientList, serverSocket):
-    print(clientList)
     for target in clientList:
         newMsg = 'update:'
         for client in clientList:
@@ -15,7 +15,6 @@ def sendList(clientList, serverSocket):
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '_' + client[2][0] + '/' + str(client[2][1]) + '\n'
             else:
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '\n'
-        print(target[0], ":", newMsg)
         serverSocket.sendto(newMsg.encode(), target[1])
 
 
