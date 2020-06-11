@@ -6,31 +6,33 @@ from socket import *
 clientList = []
 lock = threading.Lock()
 
-def sendList(clientList, serverSocket, clientAddr):
+def sendList(clientList, serverSocket):
     newMsg = 'update:'
-    for client in clientList:
-        newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '\n'
-    serverSocket.sendto(newMsg.encode(), clientAddr)
+    for target in clientList:
+        for client in clientList:
+            if target[0] == client[0] or target[1][0] == client[1][0]: # private
+                newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '_' + client[2][0] + '/' + str(client[2][1]) + '\n'
+            else:
+                newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '\n'
+        serverSocket.sendto(newMsg.encode(), target[1])
 
 
 def recvMsg(serverSocket):
     global clientList
 
     while True:
-        message, clientAddr = serverSocket.recvfrom(2048)
+        message, publicAddr = serverSocket.recvfrom(2048)
         msg = message.decode()
         cmd = msg.split(':')[0]
-        id_addr = msg.split(':')[1]
+        info = msg.split(':')[1]
 
-        id = id_addr.split('_')[0]
-        addr = id_addr.split('_')[1]
-        privateAddr = (addr, 10081)
         with lock:
             if cmd == 'register':
-                clientList.append([id, privateAddr, time.time()])
-                for client in clientList:
-                    print(client[1])
-                    sendList(clientList, serverSocket, client[1])
+                id = info.split('_')[0]
+                addr = info.split('_')[1]
+                privateAddr = (addr, 10081)
+                clientList.append([id, publicAddr, privateAddr, time.time()])
+                sendList(clientList, serverSocket)
             elif cmd == 'unregister':
                 serverSocket.sendto('exit'.encode(), privateAddr)
                 for client in clientList:
@@ -38,8 +40,7 @@ def recvMsg(serverSocket):
                         print(id + ' is unregistered' + '\t', client[1])
                         clientList.remove(client)
                         break
-                for client in clientList:
-                    sendList(clientList, serverSocket, client[1])
+                sendList(clientList, serverSocket)
             elif cmd == 'renew':
                 for client in clientList:
                     if client[0] == id:
@@ -54,15 +55,14 @@ def timeoutCheck():
         with lock:
             result = []
             for client in clientList:
-                if time.time() - client[2] <= 30:
+                if time.time() - client[3] <= 30:
                     result.append(client)
                 else:
                     print(client[0] + ' is offline' + '\t', client[1])
                     update = True
             clientList = result
             if update:
-                for client in clientList:
-                    sendList(clientList, serverSocket, client[1])
+                sendList(clientList, serverSocket)
         time.sleep(5)
 
 

@@ -20,9 +20,18 @@ def updateList(listFromServer):
             if client == '':
                 break
             clientId = client.split('_')[0]
-            clientAddr = client.split('_')[1] 
-            clientList.append([clientId, (clientAddr.split('/')[0], int(clientAddr.split('/')[1]))])
-            print(clientId + '\t', clientAddr)
+            publicAddr = client.split('_')[1]
+            privateAddr = ''
+            if len(client.split('_')) == 3:
+                privateAddr = client.split('_')[2]
+                clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), (privateAddr.split('/')[0], int(privateAddr.split('/')[1]))])
+            else:
+                clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), 'x'])
+            if len(client.split('_')) == 3:
+                print(clientId + '\t', publicAddr, '\t', privateAddr)
+            else:
+                print(clientId + '\t', publicAddr)
+
 
 def register(clientSocket, private_ip):
     global ID
@@ -40,7 +49,7 @@ def register(clientSocket, private_ip):
     updateList(listFromServer)
     
     
-def writeCommand(clientSocket, private_ip):
+def writeCommand(clientSocket):
     global _FINISH
 
     while True:
@@ -56,13 +65,16 @@ def writeCommand(clientSocket, private_ip):
             with lock:
                 for client in clientList:
                     if receiverInput == client[0]:
-                        receiverAddr = client[1]
+                        if client[2] == 'x':
+                            receiverAddr = client[1]
+                        else:
+                            receiverAddr = client[2]
                         break
             chat = ' '.join(cmdLine.split(' ')[2:])
             message = "chat:" + ID + '____' + chat
             clientSocket.sendto(message.encode(), receiverAddr)
         elif cmd == '@exit':
-            message = "unregister:" + ID + '_' + private_ip
+            message = "unregister:" + ID
             clientSocket.sendto(message.encode(), (serverIP, 10080))
             _FINISH = True
             print('finish thread1')
