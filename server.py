@@ -7,13 +7,15 @@ clientList = []
 lock = threading.Lock()
 
 def sendList(clientList, serverSocket):
-    newMsg = 'update:'
+    print(clientList)
     for target in clientList:
+        newMsg = 'update:'
         for client in clientList:
             if target[0] == client[0] or target[1][0] == client[1][0]: # private
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '_' + client[2][0] + '/' + str(client[2][1]) + '\n'
             else:
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '\n'
+        print(target[0], ":", newMsg)
         serverSocket.sendto(newMsg.encode(), target[1])
 
 
@@ -43,8 +45,8 @@ def recvMsg(serverSocket):
                 sendList(clientList, serverSocket)
             elif cmd == 'renew':
                 for client in clientList:
-                    if client[0] == id:
-                        client[2] = time.time()
+                    if client[0] == info:
+                        client[3] = time.time()
                         break
 
 
@@ -75,6 +77,3 @@ if __name__ == "__main__":
     t1.start()
     t2 = threading.Thread(target=timeoutCheck, args=())
     t2.start()
-
-
-

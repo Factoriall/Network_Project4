@@ -58,7 +58,10 @@ def writeCommand(clientSocket):
         if cmd == '@show_list':
             with lock:
                 for client in clientList:
-                    print(client[0] + '\t', client[1])
+                    if client[2] != 'x':
+                        print(client[0] + '\t', client[1], '\t', client[2])
+                    else:
+                        print(client[0] + '\t', client[1])
         elif cmd == '@chat':
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
@@ -98,11 +101,10 @@ def recvMsg(clientSocket):
 
 
 def sendStayAlive(clientSocket, private_ip):
-
     while True:
         if _FINISH:
             break
-        message = "renew:" + ID + '_' + private_ip
+        message = "renew:" + ID
         clientSocket.sendto(message.encode(), (serverIP, 10080))
         time.sleep(10)
 
@@ -120,7 +122,7 @@ if __name__ == '__main__':
 
     register(clientSocket, private_ip)
 
-    t1 = threading.Thread(target=writeCommand, args=(clientSocket, private_ip))
+    t1 = threading.Thread(target=writeCommand, args=(clientSocket, ))
     t1.start()
     t2 = threading.Thread(target=recvMsg, args=(clientSocket, ))
     t2.start()
