@@ -16,8 +16,7 @@ def updateList(listFromServer):
 
     with lock:
         clientList = []
-        print("Client list is updated!")
-        print("ID\tPublic IP\tPrivate IP")
+        print("ID" + "\tPublic IP" + "\tPrivate IP")
         for client in listFromServer:
             if client == '':
                 break
@@ -29,10 +28,6 @@ def updateList(listFromServer):
                 clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), (privateAddr.split('/')[0], int(privateAddr.split('/')[1]))])
             else:
                 clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), 'x'])
-            if len(client.split('_')) == 3:
-                print(clientId + '\t', publicAddr, '\t', privateAddr)
-            else:
-                print(clientId + '\t', publicAddr, '\t', "xxx")
 
 
 def register(clientSocket, private_ip):
@@ -64,7 +59,7 @@ def writeCommand(clientSocket):
                     if client[2] != 'x':
                         print(client[0] + '\t', client[1], '\t', client[2])
                     else:
-                        print(client[0] + '\t', client[1]. '\txxx')
+                        print(client[0] + '\t', client[1], '\txxx')
         elif cmd == '@chat':
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
