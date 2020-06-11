@@ -11,7 +11,7 @@ def sendList(clientList, serverSocket):
     for target in clientList:
         newMsg = 'update:'
         for client in clientList:
-            if target[0] == client[0] or target[1][0] == client[1][0]: # private
+            if target[0] == client[0] or target[2][0].split('.')[0:3] == client[2][0].split('.')[0:3]:  # private
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '_' + client[2][0] + '/' + str(client[2][1]) + '\n'
             else:
                 newMsg += client[0] + '_' + client[1][0] + '/' + str(client[1][1]) + '\n'
