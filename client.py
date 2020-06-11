@@ -16,6 +16,7 @@ def updateList(listFromServer):
     with lock:
         clientList = []
         print("Client list is updated!")
+        print("ID\tPublic IP\tPrivate IP")
         for client in listFromServer:
             if client == '':
                 break
@@ -30,7 +31,7 @@ def updateList(listFromServer):
             if len(client.split('_')) == 3:
                 print(clientId + '\t', publicAddr, '\t', privateAddr)
             else:
-                print(clientId + '\t', publicAddr)
+                print(clientId + '\t', publicAddr, '\t', "xxx")
 
 
 def register(clientSocket, private_ip):
@@ -39,7 +40,7 @@ def register(clientSocket, private_ip):
 
     ID = input("Enter the Client ID: ")
     #serverIP = input("Enter the server IP address: ")
-    serverIP = "192.168.35.193"
+    serverIP = "192.168.35.160"
     message = "register:" + ID + '_' + private_ip
 
     clientSocket.sendto(message.encode(), (serverIP, 10080))
