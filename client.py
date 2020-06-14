@@ -5,12 +5,13 @@ import time
 from socket import *
 
 clientList = []
-lock = threading.Lock()
+lock = threading.Lock()  # use lock to prevent reading client list simultaneously from other threads
 ID = ''
 serverIP = ''
-_FINISH = False
+_FINISH = False  # boolean variable to stop other threads when main thread is finished
 
 
+# update list from the server
 def updateList(listFromServer):
     global clientList
 
@@ -28,13 +29,13 @@ def updateList(listFromServer):
                 clientList.append([clientId, (publicAddr.split('/')[0], int(publicAddr.split('/')[1])), 'x'])
 
 
+# register ID and client address to the server
 def register(clientSocket, private_ip):
     global ID
     global serverIP
 
     ID = input("Enter the Client ID: ")
-    #serverIP = input("Enter the server IP address: ")
-    serverIP = "192.168.35.160"
+    serverIP = input("Enter the server IP address: ")
     message = "register:" + ID + '_' + private_ip
 
     clientSocket.sendto(message.encode(), (serverIP, 10080))
@@ -43,14 +44,14 @@ def register(clientSocket, private_ip):
     listFromServer = (msg.decode()).split(':')[1].split('\n')
     updateList(listFromServer)
     
-    
+# write command for some execution
 def writeCommand(clientSocket):
     global _FINISH
 
-    while True:
+    while True:  # loop until writing @exit
         cmdLine = input()
         cmd = cmdLine.split(' ')[0]
-        if cmd == '@show_list':
+        if cmd == '@show_list':  # showing list
             with lock:
                 print("ID\tPublic IP\t\t\tPrivate IP")
                 for client in clientList:
@@ -58,21 +59,21 @@ def writeCommand(clientSocket):
                         print(client[0] + '\t', client[1], '\t', client[2])
                     else:
                         print(client[0] + '\t', client[1], '\txxx')
-        elif cmd == '@chat':
+        elif cmd == '@chat':  # chat
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()
             with lock:
                 for client in clientList:
                     if receiverInput == client[0]:
-                        if client[2] == 'x':
+                        if client[2] == 'x':  # if there are not in same subnet, use public ip
                             receiverAddr = client[1]
-                        else:
+                        else: # else, use private ip
                             receiverAddr = client[2]
                         break
             chat = ' '.join(cmdLine.split(' ')[2:])
             message = "chat:" + ID + '____' + chat
             clientSocket.sendto(message.encode(), receiverAddr)
-        elif cmd == '@exit':
+        elif cmd == '@exit':  # loop termination
             message = "unregister:" + ID
             clientSocket.sendto(message.encode(), (serverIP, 10080))
             _FINISH = True
@@ -81,6 +82,7 @@ def writeCommand(clientSocket):
             print("Wrong command, write again")
 
 
+# receive message from server or client
 def recvMsg(clientSocket):
     while True:
         msg, serverAddr = clientSocket.recvfrom(2048)
@@ -88,13 +90,14 @@ def recvMsg(clientSocket):
             break
         cmd = msg.decode().split(':')[0]
         info = msg.decode().split(':')[1]
-        if cmd == 'chat':
+        if cmd == 'chat':  # if the command is 'chat', print it.
             print('From ' + info.split('____')[0] + ' [' + info.split('____')[1] + ']')
-        elif cmd == 'update':
+        elif cmd == 'update':  # if the command is 'update', then update the client list
             listFromServer = info.split('\n')
             updateList(listFromServer)
 
 
+# send stay alive message to server every 10 seconds
 def sendStayAlive(clientSocket):
     while True:
         if _FINISH:
@@ -105,17 +108,24 @@ def sendStayAlive(clientSocket):
 
 
 if __name__ == '__main__':
+
     s = socket(AF_INET, SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
-    private_ip = s.getsockname()[0]
+    private_ip = s.getsockname()[0]  # To get private IP
     s.close()
 
     clientPort = 10081
     clientSocket = socket(AF_INET, SOCK_DGRAM)
     clientSocket.bind(('', clientPort))
 
-    register(clientSocket, private_ip)
+    register(clientSocket, private_ip)  # register function
 
+    '''
+    - run 3 threads
+    t1: writing command 
+    t2: receive message from outside
+    t3: send stay alive message continuously
+    '''
     t1 = threading.Thread(target=writeCommand, args=(clientSocket, ))
     t1.start()
     t2 = threading.Thread(target=recvMsg, args=(clientSocket, ))
