@@ -53,12 +53,12 @@ def writeCommand(clientSocket):
         cmd = cmdLine.split(' ')[0]
         if cmd == '@show_list':  # showing list
             with lock:
-                print("ID\tPublic IP\t\t\tPrivate IP")
+                print("1. ID\t2. Public IP\t3. Private IP")
                 for client in clientList:
                     if client[2] != 'x':
-                        print(client[0] + '\t', client[1], '\t', client[2])
+                        print(client[0] + '\t' + client[1][0]+":"+str(client[1][1]) + '\t' + client[2][0]+":"+str(client[2][1]))
                     else:
-                        print(client[0] + '\t', client[1], '\txxx')
+                        print(client[0] + '\t' + client[1][0]+":"+str(client[1][1]) +'\txxx')
         elif cmd == '@chat':  # chat
             receiverInput = cmdLine.split(' ')[1]
             receiverAddr = ()

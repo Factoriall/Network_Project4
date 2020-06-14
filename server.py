@@ -34,14 +34,14 @@ def recvMsg(serverSocket):
                 id = info.split('_')[0]
                 addr = info.split('_')[1]
                 privateAddr = (addr, 10081)
-                print("ID:", id, "\tpublic:", publicAddr, "\tprivate:", privateAddr)
+                print("ID-" + id, "\tpublic-" + publicAddr[0]+":"+str(publicAddr[1]), "\tprivate-"+privateAddr[0]+":"+str(privateAddr[1]))
                 clientList.append([id, publicAddr, privateAddr, time.time()])
                 sendList(clientList, serverSocket)
             elif cmd == 'unregister':  # unregister
                 serverSocket.sendto('exit'.encode(), publicAddr)
                 for client in clientList:
                     if client[0] == info:
-                        print(client[0] + ' is unregistered' + '\t', client[1])
+                        print(client[0] + ' is unregistered' + '\t', client[1][0]+":"+str(client[1][1]))
                         clientList.remove(client)
                         break
                 sendList(clientList, serverSocket)
@@ -63,7 +63,7 @@ def timeoutCheck():
                 if time.time() - client[3] <= 30:
                     result.append(client)
                 else:  # timeout
-                    print(client[0] + ' is offline' + '\t', client[1])
+                    print(client[0] + ' is offline' + '\t', client[1][0]+":"+str(client[1][1]))
                     update = True
             clientList = result
             if update:
